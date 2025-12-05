@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImGo2 - Service Maintenance</title>
+    <!-- Tailwind CSS CDN 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 'Inter' 폰트를 사용하여 깔끔한 디자인 유지 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            /* Slate 100 배경 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            /* 모바일 환경을 위해 패딩 추가 */
+        }
+
+        /* Deep Orange 색상 정의 (Tailwind palette 기반 - Orange 500) */
+        .deep-orange-500 {
+            color: #f97316;
+        }
+
+        .bg-deep-orange-500 {
+            background-color: #f97316;
+        }
+
+        /* === 1. 아이콘 회전 애니메이션 === */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 회전 속도를 느리게 (10s) 설정하여 '진행 중'임을 표현 */
+        .gear-spin {
+            animation: spin 10s linear infinite;
+            transform-origin: center;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 메인 컨테이너: 최대 넓이, 그림자, 둥근 모서리 -->
+    <div
+        class="bg-white p-8 sm:p-12 w-full max-w-md shadow-2xl rounded-xl text-center border-t-8 border-deep-orange-500">
+
+        <!-- 아이콘/헤더 영역 -->
+        <div class="mb-8">
+            <!-- 톱니바퀴 아이콘 (유지보수 상징) -->
+            <svg class="mx-auto h-20 w-20 deep-orange-500 gear-spin" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37h.001z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </div>
+
+        <!-- 주요 메시지 -->
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-3">
+            🚧 서버 점검 중 👷
+        </h1>
+        <p class="text-gray-600 mb-8 text-md">
+            안정적인 서비스를 위해 시스템을 개선하고 있습니다.
+        </p>
+
+        <!-- 점검 시간 정보 (강조 블록) -->
+        <div class="p-6 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p class="text-sm font-semibold uppercase tracking-wider text-deep-orange-500 mb-3">
+                예상 점검 시간 (KST)
+            </p>
+            <div class="space-y-3 text-gray-800 text-lg font-medium">
+                <!-- 점검 시작일/시간 -->
+                <p class="flex justify-between items-center">
+                    <!-- whitespace-nowrap 클래스를 추가하여 줄바꿈 방지 -->
+                    <span class="font-bold text-gray-700 whitespace-nowrap">시작 시간:</span>
+                    <span class="text-deep-orange-500">2025년 12월 1일 (화) 01:00</span>
+                </p>
+                <!-- 점검 종료일/시간 -->
+                <p class="flex justify-between items-center">
+                    <!-- whitespace-nowrap 클래스를 추가하여 줄바꿈 방지 -->
+                    <span class="font-bold text-gray-700 whitespace-nowrap">종료 예정:</span>
+                    <span class="text-deep-orange-500">무기한</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- 추가 안내 및 연락처 -->
+        <div class="mt-8">
+            <p class="text-gray-500 text-sm">
+                점검 시간은 변동될 수 있습니다.
+            </p>
+            <p class="text-gray-500 text-sm mt-2">
+                문의사항:
+                <a href="mailto:imgo2@deurim.com"
+                    class="deep-orange-500 hover:text-orange-700 font-semibold transition duration-150">
+                    imgo2@deurim.com
+                </a>
+            </p>
+        </div>
+    </div>
+
+</body>
+
+</html>
