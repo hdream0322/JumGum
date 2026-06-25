@@ -2,6 +2,8 @@
 
 deurim.com 서비스 점검 시 표시되는 유지보수 페이지입니다.
 
+**🔗 [jumgum.deurim.com](https://jumgum.deurim.com)**
+
 GitHub Pages로 서빙되며, Cloudflare 리디렉션 규칙을 통해 각 서비스에 연결됩니다.
 
 ## 점검 시간 변경
