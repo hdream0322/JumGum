@@ -100,11 +100,25 @@
             to   { left: calc(100vw + 80px); }
         }
 
+        @keyframes walk-left {
+            from { left: calc(100vw + 80px); }
+            to   { left: -80px; }
+        }
+
+        @keyframes walk-down {
+            from { top: -80px; }
+            to   { top: calc(100vh + 80px); }
+        }
+
+        @keyframes walk-up {
+            from { top: calc(100vh + 80px); }
+            to   { top: -80px; }
+        }
+
         .easter-worker {
             position: fixed;
             font-size: 2.2rem;
             pointer-events: none;
-            animation: walk-right var(--walk-duration, 4s) linear forwards;
             z-index: 9998;
         }
 
@@ -189,11 +203,16 @@
     </div>
 
     <script>
+        let originalEndTime = document.getElementById('end-time').textContent;
+
         fetch('./config.json')
             .then(res => res.json())
             .then(config => {
                 if (config.start) document.getElementById('start-time').textContent = config.start;
-                if (config.end) document.getElementById('end-time').textContent = config.end;
+                if (config.end) {
+                    document.getElementById('end-time').textContent = config.end;
+                    originalEndTime = config.end;
+                }
             })
             .catch(() => {});
 
@@ -254,36 +273,34 @@
                 gear.classList.remove('gear-shake');
                 gearContainer.innerHTML = '<div style="font-size:3.5rem;line-height:1">💥</div>';
 
-                const msg = document.createElement('div');
-                msg.className = 'explosion-msg';
-                msg.innerHTML = '⚠️ 과부하 발생!<br><span style="font-size:0.85rem;font-weight:normal;opacity:0.9">점검이 더 늦어질 것 같습니다... 💀</span>';
-                document.body.appendChild(msg);
-                requestAnimationFrame(() => msg.classList.add('show'));
-
                 setTimeout(() => {
-                    msg.innerHTML = '🔧 긴급 수리 중...<br><span style="font-size:0.85rem;font-weight:normal;opacity:0.9">조금만 기다려 주세요</span>';
-                }, 2200);
-
-                setTimeout(() => {
-                    msg.classList.remove('show');
-                    setTimeout(() => msg.remove(), 300);
                     gearContainer.innerHTML = GEAR_SVG_HTML;
                     gearClicks = 0;
                     gearExploded = false;
-                }, 4500);
+                }, 3000);
             }, 500);
         }
 
         /* ── 이스터에그 2: 제목 클릭 → 공사 캐릭터 소환 ── */
         const WORKERS = ['👷', '👷‍♀️', '🚜', '⛏️', '🦺', '🔨'];
+        const WORKER_DIRS = ['right', 'left', 'down', 'up'];
         let workerIndex = 0;
 
         document.getElementById('title').addEventListener('click', () => {
             const w = document.createElement('div');
             w.className = 'easter-worker';
             const duration = 3 + Math.random() * 2.5;
-            const top = 15 + Math.random() * 65;
-            w.style.cssText = `top:${top}vh;--walk-duration:${duration}s;`;
+            const dir = WORKER_DIRS[Math.floor(Math.random() * WORKER_DIRS.length)];
+            let extraStyle = '';
+
+            if (dir === 'right' || dir === 'left') {
+                extraStyle = `top:${15 + Math.random() * 65}vh;`;
+                if (dir === 'left') extraStyle += 'transform:scaleX(-1);';
+            } else {
+                extraStyle = `left:${10 + Math.random() * 75}vw;`;
+            }
+
+            w.style.cssText = `animation:walk-${dir} ${duration}s linear forwards;${extraStyle}`;
             w.textContent = WORKERS[workerIndex % WORKERS.length];
             workerIndex++;
             document.body.appendChild(w);
@@ -306,15 +323,22 @@
             '공지 예정',
         ];
         let excuseIndex = 0;
+        let excuseResetTimer = null;
         const endTime = document.getElementById('end-time');
 
         endTime.addEventListener('click', () => {
             endTime.textContent = EXCUSES[excuseIndex % EXCUSES.length];
             excuseIndex++;
             endTime.classList.remove('wiggle');
-            void endTime.offsetWidth; // reflow로 애니메이션 재시작
+            void endTime.offsetWidth;
             endTime.classList.add('wiggle');
             endTime.addEventListener('animationend', () => endTime.classList.remove('wiggle'), { once: true });
+
+            clearTimeout(excuseResetTimer);
+            excuseResetTimer = setTimeout(() => {
+                endTime.textContent = originalEndTime;
+                excuseIndex = 0;
+            }, 2000);
         });
     </script>
 
