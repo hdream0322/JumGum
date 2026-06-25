@@ -35,6 +35,103 @@
             animation: spin 10s linear infinite;
             transform-origin: center;
             opacity: 0.9;
+            cursor: pointer;
+        }
+
+        /* 이스터에그 1: 기어 폭발 흔들림 */
+        @keyframes gear-shake {
+            0%  { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-4px, -3px) rotate(-15deg); }
+            30% { transform: translate(4px, 3px) rotate(20deg); }
+            45% { transform: translate(-3px, 4px) rotate(-25deg); }
+            60% { transform: translate(3px, -4px) rotate(18deg); }
+            75% { transform: translate(-4px, 2px) rotate(-12deg); }
+            90% { transform: translate(2px, -2px) rotate(8deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .gear-shake {
+            animation: gear-shake 0.5s ease-in-out forwards !important;
+        }
+
+        /* 이스터에그 1: 파티클 */
+        @keyframes particle-fly {
+            0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: var(--fly-to); opacity: 0; scale: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-fly 0.8s ease-out forwards;
+            z-index: 9999;
+        }
+
+        /* 이스터에그 1: 폭발 메시지 팝업 */
+        .explosion-msg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(220, 38, 38, 0.95);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10000;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .explosion-msg.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 이스터에그 2: 공사 캐릭터 이동 */
+        @keyframes walk-right {
+            from { left: -80px; }
+            to   { left: calc(100vw + 80px); }
+        }
+
+        .easter-worker {
+            position: fixed;
+            font-size: 2.2rem;
+            pointer-events: none;
+            animation: walk-right var(--walk-duration, 4s) linear forwards;
+            z-index: 9998;
+        }
+
+        /* 이스터에그 3: 종료 시간 hover + wiggle */
+        #end-time {
+            cursor: pointer;
+        }
+
+        #end-time:hover {
+            text-decoration: underline dotted;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25%  { transform: rotate(-6deg); }
+            75%  { transform: rotate(6deg); }
+        }
+
+        .wiggle {
+            display: inline-block;
+            animation: wiggle 0.3s ease-in-out;
+        }
+
+        /* h1 클릭 가능 표시 */
+        h1 {
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
@@ -43,8 +140,8 @@
 
     <div class="bg-white p-8 sm:p-12 w-full max-w-md shadow-2xl rounded-xl text-center border-t-8 border-deep-orange-500">
 
-        <div class="mb-8">
-            <svg class="mx-auto h-20 w-20 deep-orange-500 gear-spin" fill="none" stroke="currentColor"
+        <div class="mb-8" id="gear-container">
+            <svg id="gear" class="mx-auto h-20 w-20 deep-orange-500 gear-spin" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37h.001z">
@@ -54,7 +151,7 @@
             </svg>
         </div>
 
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-3">
+        <h1 id="title" class="text-3xl font-extrabold text-gray-900 mb-3">
             🚧 서버 점검 중 👷
         </h1>
         <p class="text-gray-600 mb-8 text-md">
@@ -99,6 +196,126 @@
                 if (config.end) document.getElementById('end-time').textContent = config.end;
             })
             .catch(() => {});
+
+        /* ── 이스터에그 1: 기어 클릭 → 과부하 폭발 ── */
+        const SPEEDS = [10, 6, 3.5, 2, 1, 0.5, 0.25, 0.1];
+        const GEAR_SVG_HTML = `<svg id="gear" class="mx-auto h-20 w-20 deep-orange-500 gear-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37h.001z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>`;
+
+        const gearContainer = document.getElementById('gear-container');
+        let gearClicks = 0;
+        let gearExploded = false;
+
+        gearContainer.addEventListener('click', () => {
+            if (gearExploded) return;
+            const gear = document.getElementById('gear');
+            if (!gear) return;
+
+            gearClicks++;
+
+            if (gearClicks < SPEEDS.length) {
+                gear.style.animationDuration = SPEEDS[gearClicks] + 's';
+                // 클릭할수록 주황→빨강으로 색상 전환
+                const ratio = gearClicks / SPEEDS.length;
+                const r = 249;
+                const g = Math.round(115 * (1 - ratio));
+                const b = Math.round(22 * (1 - ratio));
+                gear.style.color = `rgb(${r},${g},${b})`;
+            } else {
+                triggerGearExplosion(gear);
+            }
+        });
+
+        function triggerGearExplosion(gear) {
+            gearExploded = true;
+            gear.classList.add('gear-shake');
+
+            // 파티클 발사
+            const rect = gear.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const colors = ['#ef4444', '#f97316', '#eab308', '#dc2626', '#fb923c'];
+
+            for (let i = 0; i < 18; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = (i / 18) * 360;
+                const dist = 70 + Math.random() * 70;
+                const rad = angle * Math.PI / 180;
+                p.style.cssText = `left:${cx - 5}px;top:${cy - 5}px;background:${colors[i % colors.length]};--fly-to:translate(${(Math.cos(rad) * dist).toFixed(1)}px,${(Math.sin(rad) * dist).toFixed(1)}px) scale(0);`;
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 900);
+            }
+
+            setTimeout(() => {
+                gear.style.animation = 'none';
+                gear.classList.remove('gear-shake');
+                gearContainer.innerHTML = '<div style="font-size:3.5rem;line-height:1">💥</div>';
+
+                const msg = document.createElement('div');
+                msg.className = 'explosion-msg';
+                msg.innerHTML = '⚠️ 과부하 발생!<br><span style="font-size:0.85rem;font-weight:normal;opacity:0.9">점검이 더 늦어질 것 같습니다... 💀</span>';
+                document.body.appendChild(msg);
+                requestAnimationFrame(() => msg.classList.add('show'));
+
+                setTimeout(() => {
+                    msg.innerHTML = '🔧 긴급 수리 중...<br><span style="font-size:0.85rem;font-weight:normal;opacity:0.9">조금만 기다려 주세요</span>';
+                }, 2200);
+
+                setTimeout(() => {
+                    msg.classList.remove('show');
+                    setTimeout(() => msg.remove(), 300);
+                    gearContainer.innerHTML = GEAR_SVG_HTML;
+                    gearClicks = 0;
+                    gearExploded = false;
+                }, 4500);
+            }, 500);
+        }
+
+        /* ── 이스터에그 2: 제목 클릭 → 공사 캐릭터 소환 ── */
+        const WORKERS = ['👷', '👷‍♀️', '🚜', '⛏️', '🦺', '🔨'];
+        let workerIndex = 0;
+
+        document.getElementById('title').addEventListener('click', () => {
+            const w = document.createElement('div');
+            w.className = 'easter-worker';
+            const duration = 3 + Math.random() * 2.5;
+            const top = 15 + Math.random() * 65;
+            w.style.cssText = `top:${top}vh;--walk-duration:${duration}s;`;
+            w.textContent = WORKERS[workerIndex % WORKERS.length];
+            workerIndex++;
+            document.body.appendChild(w);
+            setTimeout(() => w.remove(), (duration + 0.5) * 1000);
+        });
+
+        /* ── 이스터에그 3: 종료 시간 클릭 → 변명 릴레이 ── */
+        const EXCUSES = [
+            '거의 다 왔어요! 🏃',
+            '5분만요... ⏰',
+            '조금만 더요... 🙏',
+            '커피 한 잔만요 ☕',
+            '정말 다 됐어요 (거짓말) 😅',
+            '야근 중이에요 🌙',
+            '버그가 또 하나 있었어요 🐛',
+            '언젠간 끝나요... 🌅',
+            '포기하지 마세요! 💪',
+            '저도 힘들어요 😭',
+            '신이시여... 🙇',
+            '공지 예정',
+        ];
+        let excuseIndex = 0;
+        const endTime = document.getElementById('end-time');
+
+        endTime.addEventListener('click', () => {
+            endTime.textContent = EXCUSES[excuseIndex % EXCUSES.length];
+            excuseIndex++;
+            endTime.classList.remove('wiggle');
+            void endTime.offsetWidth; // reflow로 애니메이션 재시작
+            endTime.classList.add('wiggle');
+            endTime.addEventListener('animationend', () => endTime.classList.remove('wiggle'), { once: true });
+        });
     </script>
 
 </body>
